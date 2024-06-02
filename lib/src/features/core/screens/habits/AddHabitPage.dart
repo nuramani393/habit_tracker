@@ -110,19 +110,19 @@ class _AddHabitPageState extends State<AddHabitPage> {
                         ),
                       ),
                       const SizedBox(height: 15),
-                      HabitFormField(
-                        title: "Date",
-                        hint: DateFormat('dd/MM/yyyy').format(_selectedDate),
-                        widget: IconButton(
-                          onPressed: () {
-                            _getDateFromUser();
-                          },
-                          icon: const Icon(
-                            Icons.calendar_today_outlined,
-                            color: black,
-                          ),
-                        ),
-                      ),
+                      // HabitFormField(
+                      //   title: "Date",
+                      //   hint: DateFormat('dd/MM/yyyy').format(_selectedDate),
+                      //   widget: IconButton(
+                      //     onPressed: () {
+                      //       _getDateFromUser();
+                      //     },
+                      //     icon: const Icon(
+                      //       Icons.calendar_today_outlined,
+                      //       color: black,
+                      //     ),
+                      //   ),
+                      // ),
                       const SizedBox(height: 15),
                       HabitFormField(
                         title: "Time",
@@ -257,21 +257,21 @@ class _AddHabitPageState extends State<AddHabitPage> {
     }
   }
 
-  _getDateFromUser() async {
-    DateTime? pickerDate = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(2020),
-        lastDate: DateTime(2100));
+  // _getDateFromUser() async {
+  //   DateTime? pickerDate = await showDatePicker(
+  //       context: context,
+  //       initialDate: DateTime.now(),
+  //       firstDate: DateTime(2020),
+  //       lastDate: DateTime(2100));
 
-    if (pickerDate != null) {
-      setState(() {
-        _selectedDate = pickerDate;
-      });
-    } else {
-      print("it is null");
-    }
-  }
+  //   if (pickerDate != null) {
+  //     setState(() {
+  //       _selectedDate = pickerDate;
+  //     });
+  //   } else {
+  //     print("it is null");
+  //   }
+  // }
 
   _addHabitToDb() async {
     try {
@@ -280,7 +280,8 @@ class _AddHabitPageState extends State<AddHabitPage> {
           title: _titleController.text,
           desc: _descController.text,
           category: _selectedFolder,
-          date: convertDateTimeToString(_selectedDate),
+          // date: convertDateTimeToString(_selectedDate),
+          date: todaysDateFormatted(),
           lastUpdated: todaysDateFormatted(),
           time: _time,
           remind: _selectedRemind,
