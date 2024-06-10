@@ -4,6 +4,7 @@ import 'package:habit_tracker/src/constants/colors.dart';
 import 'package:habit_tracker/src/constants/sizes.dart';
 import 'package:habit_tracker/src/features/core/controllers/habit_controller.dart';
 import 'package:habit_tracker/src/features/core/models/habit_model.dart';
+import 'package:habit_tracker/src/features/core/screens/habits/editHabitPage.dart';
 import 'package:habit_tracker/src/utils/date/date_time.dart';
 import 'package:habit_tracker/src/features/core/screens/habits/AddHabitPage.dart';
 
@@ -146,7 +147,11 @@ class _HabitCompletionState extends State<HabitCompletion> {
               ),
             ),
             GestureDetector(
-              onTap: () async {},
+              onTap: () async {
+                Get.to(EditHabitPage(
+                  habit: widget.habit!,
+                ));
+              },
               child: Text("Edit",
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: whiteColor, fontWeight: FontWeight.w100)),
@@ -175,8 +180,12 @@ class _HabitCompletionState extends State<HabitCompletion> {
                   todaysDateFormatted(), _isCompleted, _isSkipped);
             }
           });
+
           int newStreak = await _habitController.fetchStreak(widget.habit!.id!);
           _showCompletionDialog(context, newStreak);
+          setState(() {
+            _streak = newStreak;
+          });
 
           /////
         });
@@ -310,7 +319,7 @@ class _HabitCompletionState extends State<HabitCompletion> {
                     );
                     _habitController.resetStreak(widget.habit!.id!);
                   } else {
-                    _habitController.updateHabitCompletion(
+                    await _habitController.updateHabitCompletion(
                       widget.habit!.id!,
                       todaysDateFormatted(),
                       _isCompleted,
@@ -321,7 +330,7 @@ class _HabitCompletionState extends State<HabitCompletion> {
 
                   // Get the new streak and update the state
                   int newStreak =
-                      await _habitController.getStreak(widget.habit!.id!);
+                      await _habitController.fetchStreak(widget.habit!.id!);
                   setState(() {
                     _streak = newStreak;
                   });

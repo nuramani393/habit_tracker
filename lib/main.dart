@@ -1,7 +1,9 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:habit_tracker/firebase_options.dart';
 import 'package:habit_tracker/src/features/authentication/screens/forget_password/forget_password_mail/forget_password_mail.dart';
 import 'package:habit_tracker/src/features/authentication/screens/forget_password/forget_password_otp/otp_screen.dart';
 import 'package:habit_tracker/src/features/authentication/screens/login/login.dart';
@@ -12,10 +14,14 @@ import 'package:habit_tracker/src/features/core/db/db_helper.dart';
 import 'package:habit_tracker/src/features/core/screens/dashboard/dashboard.dart';
 import 'package:habit_tracker/src/features/core/screens/insights/insights.dart';
 import 'package:habit_tracker/src/features/core/screens/settings/settings.dart';
+import 'package:habit_tracker/src/repositories_authentication/authentication_repository.dart';
 import 'package:habit_tracker/src/utils/theme/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
+      .then((value) => Get.put(AuthenticationRepository()));
 
   final dbHelper = DBHelper();
   await dbHelper.initDb();
@@ -41,7 +47,6 @@ class MyApp extends StatelessWidget {
       // home: SignUpScreen(),
       // home: WelcomeScreen(),
       // home: Dashboard(),
-      // home: Settings(),
       // home: Insights(),
 
       // home: LoginScreen(),

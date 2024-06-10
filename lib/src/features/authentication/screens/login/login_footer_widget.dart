@@ -17,20 +17,20 @@ class LoginFooterWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text("OR", style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: formHeight - 10),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: Image(
-              image: AssetImage(google),
-              width: 20.0,
-            ),
-            label: Text("Sign-In with Google",
-                style: Theme.of(context).textTheme.headlineSmall),
-          ),
-        ),
+        // Text("OR", style: Theme.of(context).textTheme.headlineSmall),
+        // const SizedBox(height: formHeight - 10),
+        // SizedBox(
+        //   width: double.infinity,
+        //   child: OutlinedButton.icon(
+        //     onPressed: () {},
+        //     icon: Image(
+        //       image: AssetImage(google),
+        //       width: 20.0,
+        //     ),
+        //     label: Text("Sign-In with Google",
+        //         style: Theme.of(context).textTheme.headlineSmall),
+        //   ),
+        // ),
         const SizedBox(height: formHeight - 20),
         TextButton(
           onPressed: () => Get.to(() => SignUpScreen()),

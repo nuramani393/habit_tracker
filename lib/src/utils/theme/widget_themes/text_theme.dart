@@ -79,7 +79,6 @@ class HTextTheme {
 
     bodyLarge: GoogleFonts.poppins(
       fontSize: 12,
-      // fontWeight: FontWeight.w400,
       color: Colors.white,
     ),
 

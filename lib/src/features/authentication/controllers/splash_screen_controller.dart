@@ -11,8 +11,5 @@ class SplashScreenController extends GetxController {
     await Future.delayed(const Duration(milliseconds: 5000));
     // Get.to(const WelcomeSreen());
     Get.offAll(() => const WelcomeScreen());
-
-    // Navigator.pushReplacement(
-    //     context, MaterialPageRoute(builder: (context) => WelcomeSreen()));
   }
 }

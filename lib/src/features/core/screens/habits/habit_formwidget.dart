@@ -6,12 +6,14 @@ class HabitFormField extends StatelessWidget {
   final String hint;
   final TextEditingController? controller;
   final Widget? widget;
+  final bool readOnly;
 
   const HabitFormField(
       {super.key,
       required this.title,
       required this.hint,
       this.controller,
+      this.readOnly = false,
       this.widget});
 
   @override
@@ -40,7 +42,8 @@ class HabitFormField extends StatelessWidget {
                 child: Theme(
                   data: myEmptyTheme,
                   child: TextFormField(
-                    readOnly: widget == null ? false : true,
+                    // readOnly: widget == null ? false : true,
+                    readOnly: readOnly || widget != null,
                     autofocus: false,
                     controller: controller,
                     decoration: InputDecoration(

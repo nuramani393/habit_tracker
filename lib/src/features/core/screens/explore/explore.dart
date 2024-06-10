@@ -100,7 +100,7 @@ class _ExploreState extends State<Explore> {
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
                     children: [
-                      search(context),
+                      // search(context),
                       SizedBox(height: 20),
                       Expanded(
                         child: ListView.builder(

@@ -75,6 +75,16 @@ class DBHelper {
     });
   }
 
+//to update and edit the habits in Habits table
+  static Future<int> updateHabit(
+      int id, String desc, String category, String time, int remind) async {
+    return await _db!.rawUpdate('''
+      UPDATE Habits
+      SET desc = ?, category = ?, time = ?, remind = ?
+      WHERE id = ? 
+    ''', [desc, category, time, remind, id]);
+  }
+
 //to update the first initial entry of habit_completion table
   static Future<int> updateHabitCompletion(
       int habitId, String date, bool completed, bool skipped) async {
@@ -203,7 +213,7 @@ class DBHelper {
       List<Map<String, dynamic>> habits) async {
     print("inside daily streaks");
     for (var habit in habits) {
-      print("Processing daily habit: ${habit['title']}");
+      // print("Processing daily habit: ${habit['title']}");
       List<Map<String, dynamic>> completions = await _db!.query(
         'habit_completion',
         where: 'habitId = ?',
@@ -253,8 +263,8 @@ class DBHelper {
         where: 'id = ?',
         whereArgs: [habit['id']],
       );
-      print("inside update daily Streaks function");
-      print("streaks is $streak");
+      // print("inside update daily Streaks function");
+      // print("streaks is $streak");
     }
   }
 
@@ -262,7 +272,7 @@ class DBHelper {
   static Future<void> _updateWeeklyStreaks(
       List<Map<String, dynamic>> habits) async {
     for (var habit in habits) {
-      print("Processing weekly habit: ${habit['title']}");
+      // print("Processing weekly habit: ${habit['title']}");
       List<Map<String, dynamic>> completions = await _db!.query(
         'habit_completion',
         where: 'habitId = ?',
@@ -289,10 +299,10 @@ class DBHelper {
         bool isSkipped = completion['isSkipped'] == 1;
         String completionDat = completion['lastUpdated'].toString();
         DateTime completionDate = DateTime.parse(completionDat);
-        print("Completion Date: $completionDate");
+        // print("Completion Date: $completionDate");
 
         int daysDifference = current.difference(completionDate).inDays;
-        print("Days Difference: $daysDifference");
+        // print("Days Difference: $daysDifference");
 
         if (daysDifference <= 7 && isCompleted) {
           // Completed today
@@ -311,57 +321,8 @@ class DBHelper {
         whereArgs: [habit['id']],
       );
 
-      print("Final streak for habit ${habit['name']} is $streak");
+      // print("Final streak for habit ${habit['name']} is $streak");
     }
-  }
-
-//to update streak at the current habit
-  static Future<int> updateStreak(int habitId) async {
-    // List of completions of the habit
-    List<Map<String, dynamic>> completions = await _db!.query(
-      'habit_completion',
-      where: 'habitId = ?',
-      whereArgs: [habitId],
-      orderBy: 'lastUpdated DESC',
-    );
-
-    if (completions.isEmpty) {
-      // If empty, set streak to 0 and update the habit
-      await _db!.update(
-        'Habits',
-        {'streaks': 0},
-        where: 'id = ?',
-        whereArgs: [habitId],
-      );
-      // Move to the next habit
-    }
-
-    int streak = 0;
-    // DateTime? lastDate;
-
-    for (var completion in completions) {
-      bool isCompleted = completion['isCompleted'] == 1;
-      bool isSkipped = completion['isSkipped'] == 1;
-
-      if (isCompleted) {
-        streak++;
-      } else {
-        // Stop counting streak if there's an incomplete entry
-        break;
-      }
-
-      if (isSkipped) {
-        streak = 0;
-        break;
-      }
-    }
-    await _db!.update(
-      'Habits',
-      {'streaks': streak},
-      where: 'id = ?',
-      whereArgs: [habitId],
-    );
-    return streak;
   }
 
 //to reset streaks of the current habit
@@ -427,31 +388,88 @@ class DBHelper {
     }).toList();
   }
 
-  //to fetch list length of the habits for today
-//  Future<int> getHabitListLengthForToday() async {
-//     // String todayDate = todaysDateFormatted();
-//     List<Habit> habitListForToday = [];
+  //to fetch list length of the habits and total completion for weekly completion
+  static Future<List<Map<String, dynamic>>> getHabitCompletionForWeek(
+      String startOfWeek, String endOfWeek) async {
+    return await _db!.rawQuery('''
+    SELECT hc.*, h.title
+    FROM habit_completion AS hc
+    JOIN Habits AS h ON hc.habitId = h.id
+    WHERE hc.lastUpdated >= ? AND hc.lastUpdated <= ?
+  ''', [startOfWeek, endOfWeek]);
+  }
 
-//     for (var habit in habitList) {
-//       if (habit.repeat == 'Daily') {
-//         habitListForToday.add(habit);
-//       } else if (habit.repeat == 'Weekly') {
-//         DateTime now = DateTime.now();
-//         int weekday = now.weekday;
+  //creating insights for completion weeks an dcount for each habit
+  static Future<List<Map<String, dynamic>>> getHabitInsightsForWeek(
+      String startOfWeek, String endOfWeek) async {
+    const String query = '''
+  SELECT Habits.title AS habitName,
+         habit_completion.habitId,
+         COUNT(*) as total,
+          SUM(habit_completion.isCompleted) as completed,
+         SUM(habit_completion.isSkipped) as skipped
+  FROM habit_completion
+  INNER JOIN Habits ON Habits.id = habit_completion.habitId
+  WHERE habit_completion.lastUpdated >= ? AND habit_completion.lastUpdated <= ?
+  GROUP BY habit_completion.habitId, Habits.title
+''';
 
-//         if (createDateTimeObject(habit.date!).weekday == weekday) {
-//           habitListForToday.add(habit);
-//         } else {
-//           print("Weekly habit '${habit.title}' does not match today's weekday");
-//         }
-//       } else {
-//         print(
-//             "Unknown repetition type for habit '${habit.title}': ${habit.repeat}");
-//       }
-//     }
-//     print("habit length is  ${habitListForToday.length}");
-//     return Future.value(habitListForToday.length);
-//   }
+    final List<Map<String, dynamic>> result =
+        await _db!.rawQuery(query, [startOfWeek, endOfWeek]);
+
+    // Calculate percentages
+    return result.map((data) {
+      int total = data['total'];
+      int completed = data['completed'];
+      double completionPercentage = (total > 0) ? (completed / total) * 100 : 0;
+
+      return {
+        'habitId': data['habitId'],
+        'habitName': data['habitName'],
+        'completionPercentage': completionPercentage,
+        'total': total,
+        'completed': completed,
+        'skipped': data['skipped']
+      };
+    }).toList();
+  }
+
+//calculate the completion rate based on the category.
+  static Future<List<Map<String, dynamic>>> getCategoryHabitInsightsForWeek(
+      String startOfWeek, String endOfWeek) async {
+    const String query = '''
+    SELECT Habits.category AS folder,
+           Habits.title AS habitName,
+           habit_completion.habitId,
+           COUNT(*) as total,
+           SUM(habit_completion.isCompleted) as completed,
+           SUM(habit_completion.isSkipped) as skipped
+    FROM habit_completion
+    INNER JOIN Habits ON Habits.id = habit_completion.habitId
+    WHERE habit_completion.lastUpdated >= ? AND habit_completion.lastUpdated <= ?
+    GROUP BY Habits.category, habit_completion.habitId, Habits.title
+  ''';
+
+    final List<Map<String, dynamic>> result =
+        await _db!.rawQuery(query, [startOfWeek, endOfWeek]);
+
+    // Calculate percentages and map the results
+    return result.map((data) {
+      int total = data['total'];
+      int completed = data['completed'];
+      double completionPercentage = (total > 0) ? (completed / total) * 100 : 0;
+
+      return {
+        'folder': data['folder'],
+        'habitName': data['habitName'],
+        'completionPercentage': completionPercentage,
+        'total': total,
+        'completed': completed,
+        'skipped': data['skipped']
+      };
+    }).toList();
+  }
+
 // //to remove habits from Habits table and habit_completion table
 //   static Future<int> deleteHabitAndCompletions(int habitId) async {
 //     // Start a transaction to ensure both deletions happen together

@@ -33,20 +33,26 @@ class HabitController extends GetxController {
     await DBHelper.addHabitCompletion(habitId, date, isCompleted, isSkipped);
     await DBHelper.updateHabitStatus(habitId, date, isCompleted, isSkipped);
 
-    //wanted to update the streaks of the current habit
-    getStreak(habitId);
+    //to calculate streaks
+    updateStreaks();
     getHabits();
   }
 
 //only occur when the new habit is added
 //update the first time entry of habit_completion table and update the habit status
-  void updateHabitCompletion(
+  Future<void> updateHabitCompletion(
       int habitId, String lastUpdated, bool isCompleted, bool isSkipped) async {
     await DBHelper.updateHabitCompletion(
         habitId, lastUpdated, isCompleted, isSkipped);
     await DBHelper.updateHabitStatus(
         habitId, lastUpdated, isCompleted, isSkipped);
-    getStreak(habitId);
+    updateStreaks();
+    getHabits();
+  }
+
+  void updateHabit(
+      int id, String desc, String category, String time, int remind) async {
+    await DBHelper.updateHabit(id, desc, category, time, remind);
     getHabits();
   }
 
@@ -61,12 +67,6 @@ class HabitController extends GetxController {
     await DBHelper.updateStreaks();
     print("outside upstreaks but controller");
     getHabits();
-  }
-
-  //to update the streaks of the current habit
-  Future<int> getStreak(int habitId) async {
-    return await DBHelper.updateStreak(habitId);
-    // getHabits();
   }
 
   //to reset the streaks of the current habit
@@ -98,30 +98,68 @@ class HabitController extends GetxController {
   }
 
 //to count productivity for today
+  var weeklyData = <Map<String, dynamic>>[].obs;
+  Future<void> getWeeklyData() async {
+    // Get today's date
+    DateTime now = DateTime.now();
 
-  // Future<int> getHabitListLengthForToday() async {
-  //   // String todayDate = todaysDateFormatted();
-  //   getHabits();
-  //   List<Habit> habitListForToday = [];
-  //   print('Length of habitList: ${habitList.length}');
-  //   for (var habit in habitList) {
-  //     if (habit.repeat == 'Daily') {
-  //       habitListForToday.add(habit);
-  //     } else if (habit.repeat == 'Weekly') {
-  //       DateTime now = DateTime.now();
-  //       int weekday = now.weekday;
+    // Calculate the start and end dates of the current week
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
 
-  //       if (createDateTimeObject(habit.date!).weekday == weekday) {
-  //         habitListForToday.add(habit);
-  //       } else {
-  //         print("Weekly habit '${habit.title}' does not match today's weekday");
-  //       }
-  //     } else {
-  //       print(
-  //           "Unknown repetition type for habit '${habit.title}': ${habit.repeat}");
-  //     }
-  //   }
-  //   print("habit length is  ${habitListForToday.length}");
-  //   return Future.value(habitListForToday.length);
-  // }
+    // Format the dates to match the format of the `lastUpdated` field
+    String startOfWeekFormatted = convertDateTimeToString(startOfWeek);
+    String endOfWeekFormatted = convertDateTimeToString(endOfWeek);
+
+    // Query the habit_completion table for entries within the current week
+    List<Map<String, dynamic>> data = await DBHelper.getHabitCompletionForWeek(
+        startOfWeekFormatted, endOfWeekFormatted);
+
+    weeklyData.value = data;
+    print('weeklyData: $weeklyData');
+  }
+
+  var weekcount = <Map<String, dynamic>>[].obs;
+  void getWeekCount() async {
+    // Get today's date
+    DateTime now = DateTime.now();
+
+    // Calculate the start and end dates of the current week
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
+
+    // Format the dates to match the format of the `lastUpdated` field
+    String startOfWeekFormatted = convertDateTimeToString(startOfWeek);
+    String endOfWeekFormatted = convertDateTimeToString(endOfWeek);
+
+    // Query the habit_completion table for entries within the current week
+    List<Map<String, dynamic>> data = await DBHelper.getHabitInsightsForWeek(
+        startOfWeekFormatted, endOfWeekFormatted);
+
+    weekcount.assignAll(data);
+    print('weekcount: $weekcount');
+  }
+
+  var weekfolder = <Map<String, dynamic>>[].obs;
+  void getWeekfolder() async {
+    // Get today's date
+    DateTime now = DateTime.now();
+
+    // Calculate the start and end dates of the current week
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
+
+    // Format the dates to match the format of the `lastUpdated` field
+    String startOfWeekFormatted = convertDateTimeToString(startOfWeek);
+    String endOfWeekFormatted = convertDateTimeToString(endOfWeek);
+
+    // Query the habit_completion table for entries within the current week
+    List<Map<String, dynamic>> data =
+        await DBHelper.getCategoryHabitInsightsForWeek(
+            startOfWeekFormatted, endOfWeekFormatted);
+
+    weekfolder.assignAll(data);
+    print('weekcount: $weekfolder');
+  }
+  //
 }
